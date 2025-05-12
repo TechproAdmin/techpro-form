@@ -45,12 +45,9 @@ export default function NaikenForm() {
             time1: formData.get('time1')?.toString() ?? '',
             date2: formData.get('date2')?.toString() ?? '',
             time2: formData.get('time2')?.toString() ?? '',
-            imgFile: formData.get('imgFile') as File,
             privacy: formData.get('privacy')?.toString() === 'on',
             property: propertyInfo!,
         } as NaikenFormData;
-
-        console.log(data);
 
         setFormData(data);
         setShowNaikenConfirmModal(true);
@@ -59,7 +56,16 @@ export default function NaikenForm() {
     const handleConfirm = async () => {
         if (formData) {
             try {
-                const result = await GasApiService.getInstance().sendNaikenFormData(formData);
+                const form = formRef.current;
+                if (!form) return;
+
+                const submitFormData = new FormData(form);
+                submitFormData.append('propertyNo', formData.property.no);
+                submitFormData.append('propertyAddress', formData.property.address);
+                submitFormData.append('propertyType', formData.property.type);
+                submitFormData.append('propertyPrice', formData.property.price.toString());
+
+                const result = await GasApiService.getInstance().sendNaikenFormData(submitFormData);
                 console.log('API Response:', result);
                 if (result.status === "success") {
                     alert("送信に成功しました");
@@ -145,13 +151,13 @@ export default function NaikenForm() {
 
                 <div className="flex">
                     <div className="form-group mr-4">
-                        <label htmlFor="date2">内見希望日②<span className="required">*</span></label>
-                        <input type="date" id="date2" name="date2" required />
+                        <label htmlFor="date2">内見希望日②</label>
+                        <input type="date" id="date2" name="date2" />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="time2">目安時間帯<span className="required">*</span></label>
-                        <input type="time" id="time2" name="time2" required />
+                        <label htmlFor="time2">目安時間帯</label>
+                        <input type="time" id="time2" name="time2" />
                     </div>
                 </div>
 

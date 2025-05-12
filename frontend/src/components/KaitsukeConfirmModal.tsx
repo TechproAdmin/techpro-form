@@ -15,6 +15,8 @@ export const KaitsukeConfirmModal = ({ isOpen, onClose, onConfirm, formData }: K
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">入力内容の確認</h2>
+
+        <p className="mb-4">以下の内容で買付を申し込みます。</p>
         
         <div className="space-y-4">
           <div>

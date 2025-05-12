@@ -48,11 +48,11 @@ export default function KaitsukeForm() {
   const handleLoanChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const loanValue = e.target.value;
     if (loanValue === "融資利用(融資特約あり)") {
-      setLoanNote("※融資が承認されない場合は契約を白紙解除できます。");
-    } else if (loanValue === "融資利用(融資特約なし)" || loanValue === "現金購入") {
+      setLoanNote("※融資承認が得られた方からご契約条件のご案内となります。");
+    } else if (loanValue === "融資利用(融資特約なし)") {
       setLoanNote("※融資承認が得られなくても契約解除はできません。");
     } else {
-      setLoanNote("");
+      setLoanNote("");  // 現金購入は文言なし
     }
   };
 
