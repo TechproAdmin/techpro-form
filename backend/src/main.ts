@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { toZonedTime } from 'date-fns-tz';
 
 // Request型の拡張
 declare global {
@@ -22,29 +23,27 @@ app.use(express.json());
 
 // multerの設定
 const storage = multer.diskStorage({
-    destination: function (_req, _file, cb) {
-        const uploadDir = 'uploads';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir);
-        }
-        cb(null, uploadDir);
+    destination: (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+        cb(null, 'uploads/');
     },
-    filename: function (_req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
+    filename: (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+        // 日本語ファイル名をURLエンコードして保存
+        const encodedFilename = encodeURIComponent(file.originalname);
+        cb(null, `${Date.now()}-${encodedFilename}`);
     }
 });
 
-const upload = multer({ 
+const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB制限
+        fileSize: 5 * 1024 * 1024 // 5MB
     },
-    fileFilter: (_req, file, cb) => {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        if (allowedTypes.includes(file.mimetype)) {
+    fileFilter: (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+        // 画像ファイルのみ許可
+        if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
-            cb(new Error('許可されていないファイル形式です。'));
+            cb(new Error('画像ファイルのみアップロード可能です'));
         }
     }
 });
@@ -179,14 +178,18 @@ app.post("/send_kaitsuke", (async (req: Request, res: Response) => {
             conditionsStr = formData.conditions;
         }
 
+        // 日本時間に変換
+        const jstDate = toZonedTime(new Date(), 'Asia/Tokyo');
+        const formattedDate = format(jstDate, 'yyyy/MM/dd HH:mm:ss');
+
         await sheets.spreadsheets.values.append({
             spreadsheetId: FORM_SS_ID,
-            range: "買付申込フォーム管理表!A:Q",
+            range: "買付申込フォーム管理表!C:S",
             valueInputOption: "USER_ENTERED",
             requestBody: {
                 values: [
                     [
-                        new Date(),
+                        formattedDate,
                         formData.lastName || "",
                         formData.firstName || "",
                         formData.companyName || "",
@@ -198,7 +201,7 @@ app.post("/send_kaitsuke", (async (req: Request, res: Response) => {
                         formData.offerPrice || "",
                         formData.deposit || "",
                         formData.loan || "",
-                        conditionsStr,  // 処理済みの文字列を使用
+                        conditionsStr,
                         formData.propertyNo || "",
                         formData.propertyAddress || "",
                         formData.propertyType || "",
@@ -218,23 +221,30 @@ app.post("/send_kaitsuke", (async (req: Request, res: Response) => {
 // 内見受付フォーム送信エンドポイント
 app.post("/send_naiken", upload.single('imgFile'), (async (req: Request, res: Response) => {
     try {
-        // スプシに記録
         const sheets = await getSheetsClient();
         const formData = req.body;
-        const file = (req as any).file;
+        const file = req.file;
 
         if (!formData) {
             return res.status(400).json({ status: "error", message: "フォームデータがありません" });
         }
 
+        // 日本時間に変換
+        const jstDate = toZonedTime(new Date(), 'Asia/Tokyo');
+        const formattedDate = format(jstDate, 'yyyy/MM/dd HH:mm:ss');
+
+        // propertyTypeとpropertyPriceを文字列として処理
+        const propertyType = Array.isArray(formData.propertyType) ? formData.propertyType[0] : formData.propertyType;
+        const propertyPrice = Array.isArray(formData.propertyPrice) ? formData.propertyPrice[0] : formData.propertyPrice;
+
         await sheets.spreadsheets.values.append({
             spreadsheetId: FORM_SS_ID,
-            range: "内見受付フォーム管理表!A:Q",
+            range: "内見受付フォーム管理表!C:P",
             valueInputOption: "USER_ENTERED",
             requestBody: {
                 values: [
                     [
-                        new Date(),
+                        formattedDate,
                         formData.name || "",
                         formData.phone || "",
                         formData.email || "",
@@ -242,12 +252,12 @@ app.post("/send_naiken", upload.single('imgFile'), (async (req: Request, res: Re
                         formData.time1 || "",
                         formData.date2 || "",
                         formData.time2 || "",
-                        file ? file.filename : "",
+                        file ? decodeURIComponent(file.filename) : "",
                         formData.privacy || "",
                         formData.propertyNo || "",
                         formData.propertyAddress || "",
-                        formData.propertyType || "",
-                        formData.propertyPrice || ""
+                        propertyType || "",
+                        propertyPrice || ""
                     ]
                 ]
             }
@@ -271,20 +281,18 @@ app.post("/send_naiken", upload.single('imgFile'), (async (req: Request, res: Re
         `;
 
         await mail.sendMail(
-            "system@techpro-j.com",
-            "内見受付フォーム送信完了",
+            "support@techpro-j.com",
+            "内見受付フォームを受信しました",
             mailText,
             file ? [{
-                filename: file.originalname,
+                filename: decodeURIComponent(file.originalname),
                 path: file.path
             }] : undefined
         );
 
         // ファイルの削除（オプション）
         if (file) {
-            fs.unlink(file.path, (err) => {
-                if (err) console.error('ファイル削除エラー:', err);
-            });
+            fs.unlinkSync(file.path);
         }
 
         res.json({ status: "success", message: "データを記録しました" });

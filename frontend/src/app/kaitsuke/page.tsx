@@ -323,7 +323,7 @@ export default function KaitsukeForm() {
           <input type="text" id="condition5" name="condition5" />
         </div>
 
-        <button type="submit" id="submitBtn">送信</button>
+        <button type="submit" id="submitBtn">申し込む</button>
       </form>
       <KaitsukeConfirmModal
         isOpen={showKaitsukeConfirmModal}

@@ -11,7 +11,8 @@ export class GasApiService {
   private baseUrl: string;
 
   private constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    // this.baseUrl = 'http://localhost:8080';
+    this.baseUrl = 'https://techpro-form-api-236032490225.asia-northeast1.run.app';
   }
 
   public static getInstance(): GasApiService {

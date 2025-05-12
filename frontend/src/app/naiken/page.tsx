@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { PropertyData, NaikenFormData } from "@/types";
 import { GasApiService } from "@/api";
 import { NaikenConfirmModal } from "@/components/NaikenConfirmModal";
+import { formatNumberWithCommas } from "@/utils";
 
 export default function NaikenForm() {
 
@@ -60,25 +61,25 @@ export default function NaikenForm() {
                 if (!form) return;
 
                 const submitFormData = new FormData(form);
-                submitFormData.append('propertyNo', formData.property.no);
-                submitFormData.append('propertyAddress', formData.property.address);
-                submitFormData.append('propertyType', formData.property.type);
-                submitFormData.append('propertyPrice', formData.property.price.toString());
+                submitFormData.set('propertyNo', formData.property.no);
+                submitFormData.set('propertyAddress', formData.property.address);
+                submitFormData.set('propertyType', formData.property.type);
+                submitFormData.set('propertyPrice', formData.property.price.toString());
 
                 const result = await GasApiService.getInstance().sendNaikenFormData(submitFormData);
                 console.log('API Response:', result);
                 if (result.status === "success") {
-                    alert("送信に成功しました");
+                    alert("内見希望を受け付けました。\n日程が確定したら担当よりご連絡いたします。");
                     setShowNaikenConfirmModal(false);
                     formRef.current?.reset();
                     setPropertyInfo(null);
                     setFormData(null);
                 } else {
-                    alert("送信に失敗しました。\nしばらく経ってから再度お試しください。\nこのメッセージが繰り返し出る場合は、お手数ですが弊社に直接お問い合わせください。\n\n" + (result.message || "詳細不明"));
+                    alert("エラーが発生しました。\nしばらく経ってから再度お試しください。\nこのメッセージが繰り返し出る場合は、お手数ですが弊社に直接お問い合わせください。\n\n" + (result.message || "詳細不明"));
                 }
             } catch (error) {
                 console.error('送信エラー:', error);
-                alert("送信に失敗しました。\nしばらく経ってから再度お試しください。\nこのメッセージが繰り返し出る場合は、お手数ですが弊社に直接お問い合わせください。\n\n" + error);
+                alert("エラーが発生しました。\nしばらく経ってから再度お試しください。\nこのメッセージが繰り返し出る場合は、お手数ですが弊社に直接お問い合わせください。\n\n" + error);
             }
         }
     };
@@ -120,6 +121,30 @@ export default function NaikenForm() {
                             })}
                         </select>
                     </div>
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="propertyType">物件種別</label>
+                    <input 
+                        type="text" 
+                        id="propertyType" 
+                        name="propertyType" 
+                        className="no-focus" 
+                        value={propertyInfo?.type ?? ''} 
+                        readOnly 
+                    />
+                    </div>
+
+                    <div className="form-group">
+                    <label htmlFor="propertyPrice">販売価格 (万円)</label>
+                    <input 
+                        type="text" 
+                        id="propertyPrice" 
+                        name="propertyPrice" 
+                        className="no-focus" 
+                        value={propertyInfo?.price ? formatNumberWithCommas(propertyInfo.price.toString()) : ''} 
+                        readOnly 
+                    />
                 </div>
 
                 <div className="form-group">
@@ -171,7 +196,7 @@ export default function NaikenForm() {
                     <label htmlFor="privacy">プライバシーポリシーに同意します<span className="required">*</span></label>
                 </div>
 
-                <button type="submit" id="submitBtn">送信する</button>
+                <button type="submit" id="submitBtn">申し込む</button>
                 
             </form>
             <NaikenConfirmModal
