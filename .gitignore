@@ -2,5 +2,6 @@ node_modules
 .next
 .firebase
 .env
+frontend/out
 
 firebase-debug.log*
