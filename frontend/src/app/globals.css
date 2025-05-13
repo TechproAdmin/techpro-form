@@ -3,15 +3,31 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --container-background: #ffffff;
 }
 
 /* styles.css */
 body {
   font-family: sans-serif;
   line-height: 1.5;
-  padding: 10px;
-  background-color: rgb(236, 231, 231);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
+
+/* ページ固有のスタイル */
+.kaitsuke-page {
+  min-height: 100vh;
+  background-color: #f5f5dc;  /* 薄いベージュ */
+  padding: 1rem;
+}
+
+.naiken-page {
+  min-height: 100vh;
+  background-color: #eff6ff;  /* bg-blue-50 */
+  padding: 1rem;
+}
+
 h1 {
   font-size: 1.5em;
   margin-bottom: 0.5em;
@@ -23,6 +39,13 @@ h2 {
   margin-bottom: 0.5em;
   border-bottom: 2px solid #ccc;
   padding-bottom: 0.2em;
+}
+.form-container {
+  margin: 15px;
+  padding: 15px;
+  background-color: var(--container-background);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .form-group {
   margin-bottom: 1em;

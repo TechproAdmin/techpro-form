@@ -50,10 +50,12 @@ export const NaikenConfirmModal = ({ isOpen, onClose, onConfirm, formData }: Nai
             <h3 className="font-bold">プライバシーポリシー同意</h3>
             <div>{formData.privacy ? "同意する" : "同意しない"}</div>
           </div>
-          <div>
-            <h3 className="font-bold">添付ファイル</h3>
-            <div>{formData.imgFile ? (typeof formData.imgFile === 'string' ? formData.imgFile : formData.imgFile.name) : "未添付"}</div>
-          </div>
+          {formData.imgFile && (
+            <div>
+              <h3 className="font-bold">添付ファイル</h3>
+              <div>{formData.imgFile.name}</div>
+            </div>
+          )}
         </div>
         <div className="mt-6 flex justify-end space-x-4">
           <button

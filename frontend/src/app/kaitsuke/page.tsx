@@ -112,7 +112,8 @@ export default function KaitsukeForm() {
   };
 
   return (
-    <div className="m-4 p-4 bg-white rounded-lg shadow-md">
+    <div className="kaitsuke-page">
+    <div className="form-container">
       <h1>買付申込フォーム</h1>
       <p className="text-sm text-red-500">
         物件購入ご希望の場合、フォームに沿ってお申し込みください。<br />
@@ -206,16 +207,16 @@ export default function KaitsukeForm() {
             <select 
               id="propertySelect" 
               name="propertyName" 
-              onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address === e.target.value) ?? null)}
+              onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address + " " + property.type + " " + property.price === e.target.value) ?? null)}
               defaultValue=""
               required
               className="w-full border rounded mt-2 p-2"
             >
               <option value="" disabled>-- 物件を選択してください --</option>
               {filteredProperties.map((property, index) => {
-                const optionValue = `${property.no} ${property.address}`;
+                const optionValue = `${property.no} ${property.address} ${property.type} ${property.price}`;
                 return <option key={`property-${index}-${property.no}`} value={optionValue}>
-                  {property.no} {property.address}
+                  {property.no} {property.address} {property.type} {property.price}
                 </option>
               })}
             </select>
@@ -331,6 +332,7 @@ export default function KaitsukeForm() {
         onConfirm={handleConfirm}
         formData={formData}
       />
+    </div>
     </div>
   );
 }

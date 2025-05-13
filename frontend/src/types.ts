@@ -29,9 +29,9 @@ export interface NaikenFormData {
     time1: string;
     date2: string;
     time2: string;
-    imgFile: File;
     privacy: boolean;
     property: PropertyData;
+    imgFile?: File;
 }
 
 export interface SendApiResponse {

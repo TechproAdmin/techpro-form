@@ -85,7 +85,8 @@ export default function NaikenForm() {
     };
 
     return (
-        <div className="m-4 p-4 bg-white rounded-lg shadow-md">
+        <div className="naiken-page">
+        <div className="form-container">
             <h1>内見希望受付フォーム</h1>
             <p className="text-sm text-red-500 mb-4">
                 以下の項目を入力してご希望日をお送りください。<br />
@@ -107,16 +108,16 @@ export default function NaikenForm() {
                         <select 
                         id="propertySelect" 
                         name="propertyName" 
-                        onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address === e.target.value) ?? null)}
+                        onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address + " " + property.type + " " + property.price === e.target.value) ?? null)}
                         defaultValue=""
                         required
                         className="w-full border rounded mt-2 p-2"
                         >
                             <option value="" disabled>-- 物件を選択してください --</option>
                             {filteredProperties.map((property, index) => {
-                                const optionValue = `${property.no} ${property.address}`;
+                                const optionValue = `${property.no} ${property.address} ${property.type} ${property.price}`;
                                 return <option key={`property-${index}-${property.no}`} value={optionValue}>
-                                    {property.no} {property.address}
+                                    {property.no} {property.address} {property.type} {property.price}
                                 </option>
                             })}
                         </select>
@@ -193,7 +194,12 @@ export default function NaikenForm() {
 
                 <div className="form-group flex mb-4">
                     <input type="checkbox" id="privacy" name="privacy" className="mr-2" required />
-                    <label htmlFor="privacy">プライバシーポリシーに同意します<span className="required">*</span></label>
+                    <label htmlFor="privacy">
+                        <a href="https://www.techpro-j.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-blue-500 border-b border-blue-500">
+                            プライバシーポリシー
+                        </a>
+                        に同意します<span className="required">*</span>
+                    </label>
                 </div>
 
                 <button type="submit" id="submitBtn">申し込む</button>
@@ -205,6 +211,7 @@ export default function NaikenForm() {
                 onConfirm={handleConfirm}
                 formData={formData}
             />
+        </div>
         </div>
     )
 }

@@ -93,7 +93,8 @@ class Mail {
     }
 
     async sendMail(
-        address: string, 
+        toAddress: string, 
+        ccAddress: string,
         subject: string, 
         text: string, 
         attachments?: { filename: string; path: string }[]
@@ -101,7 +102,8 @@ class Mail {
         try {
             const mailOptions = {
                 from: this.fromAddress,
-                to: address,
+                to: toAddress,
+                cc: ccAddress,
                 subject: subject,
                 text: text,
                 date: new Date(),
@@ -156,7 +158,7 @@ app.get("/fetch", async (req, res) => {
 // 在庫一覧(内見可のみ)取得エンドポイント
 app.get("/fetch_naiken", async (req, res) => {
     const properties = await fetchProperties();
-    const properties_naiken = properties.filter((property) => property.naiken === "【内見可】");
+    const properties_naiken = properties.filter((property) => property.naiken != "内見NG");
     res.json({ status: "success", message: "在庫一覧(内見可)を取得しました", properties: properties_naiken });
 })
 
@@ -265,10 +267,18 @@ app.post("/send_naiken", upload.single('imgFile'), (async (req: Request, res: Re
 
         // 社内向けメール送信
         const mail = new Mail();
+        const toAddress = formData.email;
+        const ccAddress = "support@techpro-j.com";
+        const mailTitle = `内見希望を受け付けました（${formData.propertyAddress}）`
         const mailText = `
-内見受付フォームが送信されました。
+${formData.name}様
 
-【送信内容】
+この度は、内見のお申し込みありがとうございます。
+以下の内容で申込を受け付けました。
+日程が確定しましたら、内見方法をご案内いたしますので、
+今しばらくお待ちくださいませ。
+
+【受付内容】
 名前: ${formData.name}
 電話番号: ${formData.phone}
 メールアドレス: ${formData.email}
@@ -278,11 +288,23 @@ app.post("/send_naiken", upload.single('imgFile'), (async (req: Request, res: Re
 物件住所: ${formData.propertyAddress}
 物件種別: ${formData.propertyType}
 物件価格: ${formData.propertyPrice}
+
+////////////////////////////////////////////////////////////
+東京都知事(1) 免許番号109690
+テックプロパティジャパン株式会社
+〒150-0043
+東京都渋谷区道玄坂1-21-1
+SHIBUYA SOLASTA 3F
+TEL：03-6843-1838
+FAX：03-4243-2722
+https://www.techpro-j.com/
+////////////////////////////////////////////////////////////
         `;
 
         await mail.sendMail(
-            "support@techpro-j.com",
-            "内見受付フォームを受信しました",
+            toAddress,
+            ccAddress,
+            mailTitle,
             mailText,
             file ? [{
                 filename: decodeURIComponent(file.originalname),
