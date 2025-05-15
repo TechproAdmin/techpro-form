@@ -207,16 +207,16 @@ export default function KaitsukeForm() {
             <select 
               id="propertySelect" 
               name="propertyName" 
-              onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address + " " + property.type + " " + property.price === e.target.value) ?? null)}
+              onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address + " ｜ " + property.type + " " + property.price === e.target.value) ?? null)}
               defaultValue=""
               required
               className="w-full border rounded mt-2 p-2"
             >
               <option value="" disabled>-- 物件を選択してください --</option>
               {filteredProperties.map((property, index) => {
-                const optionValue = `${property.no} ${property.address} ${property.type} ${property.price}`;
+                const optionValue = `${property.no} ${property.address} ｜ ${property.type} ${property.price}`;
                 return <option key={`property-${index}-${property.no}`} value={optionValue}>
-                  {property.no} {property.address} {property.type} {property.price}
+                  {property.no} {property.address} ｜ {property.type} {property.price}
                 </option>
               })}
             </select>

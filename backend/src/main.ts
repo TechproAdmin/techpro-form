@@ -64,30 +64,20 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
-async function test() {
-    return [
-        {
-            "id": 1,
-            "name": "test",
-            "price": 1000
-        }
-    ]
-}
-
 // メール送信用
 class Mail {
     private transporter: nodemailer.Transporter;
     private fromAddress: string;
 
     constructor() {
-        this.fromAddress = 'system@techpro-j.com';
+        this.fromAddress = 'support@techpro-j.com';
         this.transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
             port: 587,
             secure: false, // TLS
             auth: {
                 user: this.fromAddress,
-                pass: 'kgzl gamu xnsy mnty'
+                pass: 'wkmm awtz cwgy bzyh'
             }
         });
     }

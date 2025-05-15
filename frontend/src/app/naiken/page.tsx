@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { PropertyData, NaikenFormData } from "@/types";
 import { GasApiService } from "@/api";
 import { NaikenConfirmModal } from "@/components/NaikenConfirmModal";
+import { NaikenCompleteModal } from "@/components/NaikenCompleteModal";
 import { formatNumberWithCommas } from "@/utils";
 
 export default function NaikenForm() {
@@ -15,6 +16,9 @@ export default function NaikenForm() {
     const [formData, setFormData] = useState<NaikenFormData | null>(null);
     const [showNaikenConfirmModal, setShowNaikenConfirmModal] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
+    const [selectedFileName, setSelectedFileName] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
 
     useEffect(() => {
         const fetchProperties = async () => {
@@ -56,6 +60,7 @@ export default function NaikenForm() {
 
     const handleConfirm = async () => {
         if (formData) {
+            setIsSubmitting(true);
             try {
                 const form = formRef.current;
                 if (!form) return;
@@ -69,17 +74,19 @@ export default function NaikenForm() {
                 const result = await GasApiService.getInstance().sendNaikenFormData(submitFormData);
                 console.log('API Response:', result);
                 if (result.status === "success") {
-                    alert("内見希望を受け付けました。\n日程が確定したら担当よりご連絡いたします。");
                     setShowNaikenConfirmModal(false);
                     formRef.current?.reset();
                     setPropertyInfo(null);
                     setFormData(null);
+                    setShowCompleteModal(true);
                 } else {
                     alert("エラーが発生しました。\nしばらく経ってから再度お試しください。\nこのメッセージが繰り返し出る場合は、お手数ですが弊社に直接お問い合わせください。\n\n" + (result.message || "詳細不明"));
                 }
             } catch (error) {
                 console.error('送信エラー:', error);
                 alert("エラーが発生しました。\nしばらく経ってから再度お試しください。\nこのメッセージが繰り返し出る場合は、お手数ですが弊社に直接お問い合わせください。\n\n" + error);
+            } finally {
+                setIsSubmitting(false);
             }
         }
     };
@@ -107,19 +114,18 @@ export default function NaikenForm() {
                         />
                         <select 
                         id="propertySelect" 
-                        name="propertyName" 
-                        onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address + " " + property.type + " " + property.price === e.target.value) ?? null)}
+                        name="propertyNo"
+                        onChange={(e) => setPropertyInfo(propertyList.find(property => property.no === e.target.value) ?? null)}
                         defaultValue=""
                         required
                         className="w-full border rounded mt-2 p-2"
                         >
                             <option value="" disabled>-- 物件を選択してください --</option>
-                            {filteredProperties.map((property, index) => {
-                                const optionValue = `${property.no} ${property.address} ${property.type} ${property.price}`;
-                                return <option key={`property-${index}-${property.no}`} value={optionValue}>
-                                    {property.no} {property.address} {property.type} {property.price}
+                            {filteredProperties.map((property, index) => (
+                                <option key={`property-${index}-${property.no}`} value={property.no}>
+                                    {property.no} {property.address} ｜ {property.type} {property.price}
                                 </option>
-                            })}
+                            ))}
                         </select>
                     </div>
                 </div>
@@ -163,33 +169,89 @@ export default function NaikenForm() {
                     <input type="email" id="email" name="email" required />
                 </div>
 
-                <div className="flex">
-                    <div className="form-group mr-4">
-                        <label htmlFor="date1">内見希望日①<span className="required">*</span></label>
-                        <input type="date" id="date1" name="date1" required />
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="form-group flex-1 min-w-0">
+                        <label htmlFor="date1" className="block mb-1">内見希望日①<span className="required">*</span></label>
+                        <input 
+                            type="date" 
+                            id="date1" 
+                            name="date1" 
+                            required 
+                            className="block w-full p-2 border rounded-md appearance-none" 
+                            style={{ WebkitAppearance: 'none' }}
+                        />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="time1">目安時間帯<span className="required">*</span></label>
-                        <input type="time" id="time1" name="time1" required />
+                    <div className="form-group flex-1 min-w-0">
+                        <label htmlFor="time1" className="block mb-1">目安時間帯<span className="required">*</span></label>
+                        <select 
+                            id="time1" 
+                            name="time1" 
+                            required 
+                            className="block w-full p-2 border rounded-md appearance-none" 
+                            defaultValue=""
+                            style={{ WebkitAppearance: 'none' }}
+                        >
+                            <option value="" disabled>選択してください</option>
+                            {Array.from({length: 48}, (_, i) => {
+                                const hour = Math.floor(i / 2);
+                                const minute = i % 2 === 0 ? '00' : '30';
+                                return <option key={i} value={`${hour.toString().padStart(2, '0')}:${minute}`}>{`${hour.toString().padStart(2, '0')}:${minute}`}</option>;
+                            })}
+                        </select>
                     </div>
                 </div>
 
-                <div className="flex">
-                    <div className="form-group mr-4">
-                        <label htmlFor="date2">内見希望日②</label>
-                        <input type="date" id="date2" name="date2" />
+                <div className="mt-4 flex flex-col md:flex-row gap-4">
+                    <div className="form-group flex-1 min-w-0">
+                        <label htmlFor="date2" className="block mb-1">内見希望日②</label>
+                        <input 
+                            type="date" 
+                            id="date2" 
+                            name="date2" 
+                            className="block w-full p-2 border rounded-md appearance-none" 
+                            style={{ WebkitAppearance: 'none' }}
+                        />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="time2">目安時間帯</label>
-                        <input type="time" id="time2" name="time2" />
+                    <div className="form-group flex-1 min-w-0">
+                        <label htmlFor="time2" className="block mb-1">目安時間帯</label>
+                        <select 
+                            id="time2" 
+                            name="time2" 
+                            className="block w-full p-2 border rounded-md appearance-none" 
+                            defaultValue=""
+                            style={{ WebkitAppearance: 'none' }}
+                        >
+                            <option value="" disabled>選択してください</option>
+                            {Array.from({length: 48}, (_, i) => {
+                                const hour = Math.floor(i / 2);
+                                const minute = i % 2 === 0 ? '00' : '30';
+                                return <option key={i} value={`${hour.toString().padStart(2, '0')}:${minute}`}>{`${hour.toString().padStart(2, '0')}:${minute}`}</option>;
+                            })}
+                        </select>
                     </div>
                 </div>
 
                 <div className="form-group">
                     <label htmlFor="imgFile">身分証 or 名刺を画像ファイルでアップロードしてください<span className="required">*</span></label>
-                    <input type="file" id="imgFile" name="imgFile" required />
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <input
+                            type="file"
+                            id="imgFile"
+                            name="imgFile"
+                            required
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                                const file = e.target.files && e.target.files[0];
+                                setSelectedFileName(file ? file.name : '');
+                            }}
+                        />
+                        <label htmlFor="imgFile" className="custom-file-upload" style={{ cursor: 'pointer', background: '#3182ce', color: '#fff', padding: '8px 16px', borderRadius: '4px', marginRight: '12px' }}>
+                            画像をアップロード
+                        </label>
+                        <span>{selectedFileName || 'ファイルが選択されていません'}</span>
+                    </div>
                 </div>
 
                 <div className="form-group flex mb-4">
@@ -202,7 +264,7 @@ export default function NaikenForm() {
                     </label>
                 </div>
 
-                <button type="submit" id="submitBtn">申し込む</button>
+                <button type="submit" id="submitBtn" disabled={isSubmitting}>申し込む</button>
                 
             </form>
             <NaikenConfirmModal
@@ -210,6 +272,11 @@ export default function NaikenForm() {
                 onClose={() => setShowNaikenConfirmModal(false)}
                 onConfirm={handleConfirm}
                 formData={formData}
+                isSubmitting={isSubmitting}
+            />
+            <NaikenCompleteModal
+                isOpen={showCompleteModal}
+                onClose={() => setShowCompleteModal(false)}
             />
         </div>
         </div>

@@ -5,16 +5,17 @@ interface NaikenConfirmModalProps {
   onClose: () => void;
   onConfirm: () => void;
   formData: NaikenFormData | null;
+  isSubmitting?: boolean;
 }
 
-export const NaikenConfirmModal = ({ isOpen, onClose, onConfirm, formData }: NaikenConfirmModalProps) => {
+export const NaikenConfirmModal = ({ isOpen, onClose, onConfirm, formData, isSubmitting }: NaikenConfirmModalProps) => {
   if (!isOpen || !formData) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">入力内容の確認</h2>
-        <p className="mb-4">以下の内容で買付を申し込みます。</p>
+        <p className="mb-4">以下の内容で内見を申し込みます。</p>
 
         <div className="space-y-4">
           <div>
@@ -67,8 +68,9 @@ export const NaikenConfirmModal = ({ isOpen, onClose, onConfirm, formData }: Nai
           <button
             onClick={onConfirm}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            disabled={isSubmitting}
           >
-            送信する
+            {isSubmitting ? "送信中..." : "申し込む"}
           </button>
         </div>
       </div>
