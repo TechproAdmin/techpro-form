@@ -5,6 +5,7 @@ import type { PropertyData, KaitsukeFormData } from "@/types";
 import { formatNumberWithCommas } from "@/utils";
 import { GasApiService } from "@/api";
 import { KaitsukeConfirmModal } from "@/components/KaitsukeConfirmModal";
+import { KaitsukeCompleteModal } from "@/components/KaitsukeCompleteModal";
 
 export default function KaitsukeForm() {
   const [propertyInfo, setPropertyInfo] = useState<PropertyData | null>(null);  // フォームで選択された物件データ
@@ -14,6 +15,7 @@ export default function KaitsukeForm() {
   const [searchQuery, setSearchQuery] = useState("");  // 検索クエリ
   const [filteredProperties, setFilteredProperties] = useState<PropertyData[]>([]);  // 検索結果
   const [showKaitsukeConfirmModal, setShowKaitsukeConfirmModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [formData, setFormData] = useState<KaitsukeFormData | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -93,7 +95,6 @@ export default function KaitsukeForm() {
         const result = await GasApiService.getInstance().sendKaitsukeFormData(formData);
         console.log('API Response:', result);
         if (result.status === "success") {
-          alert("送信に成功しました");
           setShowKaitsukeConfirmModal(false);
           formRef.current?.reset();
           setPropertyInfo(null);
@@ -101,6 +102,7 @@ export default function KaitsukeForm() {
           setLoanNote("");
           setSearchQuery("");
           setFormData(null);
+          setShowCompleteModal(true);
         } else {
           alert("送信に失敗しました。\nしばらく経ってから再度お試しください。\nこのメッセージが繰り返し出る場合は、お手数ですが弊社に直接お問い合わせください。\n\n" + (result.message || "詳細不明"));
         }
@@ -331,6 +333,10 @@ export default function KaitsukeForm() {
         onClose={() => setShowKaitsukeConfirmModal(false)}
         onConfirm={handleConfirm}
         formData={formData}
+      />
+      <KaitsukeCompleteModal
+        isOpen={showCompleteModal}
+        onClose={() => setShowCompleteModal(false)}
       />
     </div>
     </div>

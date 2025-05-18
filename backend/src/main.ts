@@ -176,11 +176,13 @@ app.post("/send_kaitsuke", (async (req: Request, res: Response) => {
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: FORM_SS_ID,
-            range: "買付申込フォーム管理表!C:S",
+            range: "買付申込フォーム管理表!A:S",
             valueInputOption: "USER_ENTERED",
             requestBody: {
                 values: [
                     [
+                        "",
+                        "",
                         formattedDate,
                         formData.lastName || "",
                         formData.firstName || "",
@@ -204,6 +206,7 @@ app.post("/send_kaitsuke", (async (req: Request, res: Response) => {
         });
 
         res.json({ status: "success", message: "データを記録しました" });
+        // ※メール送信はGASに任せる
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ status: "error", message: "サーバーエラーが発生しました" });
@@ -231,11 +234,13 @@ app.post("/send_naiken", upload.single('imgFile'), (async (req: Request, res: Re
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: FORM_SS_ID,
-            range: "内見受付フォーム管理表!C:P",
+            range: "内見受付フォーム管理表!A:P",
             valueInputOption: "USER_ENTERED",
             requestBody: {
                 values: [
                     [
+                        "",
+                        "",
                         formattedDate,
                         formData.name || "",
                         formData.phone || "",
@@ -255,11 +260,11 @@ app.post("/send_naiken", upload.single('imgFile'), (async (req: Request, res: Re
             }
         });
 
-        // 社内向けメール送信
+        // メール送信  ※身分証明書画像を添付するため
         const mail = new Mail();
         const toAddress = formData.email;
         const ccAddress = "support@techpro-j.com";
-        const mailTitle = `内見希望を受け付けました（${formData.propertyAddress}）`
+        const mailTitle = `【${formData.name}様】内見希望を受け付けました（${formData.propertyAddress}）`
         const mailText = `
 ${formData.name}様
 

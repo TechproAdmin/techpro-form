@@ -86,7 +86,7 @@ export const KaitsukeConfirmModal = ({ isOpen, onClose, onConfirm, formData }: K
             onClick={onConfirm}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            送信する
+            申し込む
           </button>
         </div>
       </div>
