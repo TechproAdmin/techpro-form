@@ -28,6 +28,12 @@ body {
   padding: 1rem;
 }
 
+.ca-page {
+  min-height: 100vh;
+  background-color: #4b5769;  /* bg-blue-50 */
+  padding: 1rem;
+}
+
 h1 {
   font-size: 1.5em;
   margin-bottom: 0.5em;

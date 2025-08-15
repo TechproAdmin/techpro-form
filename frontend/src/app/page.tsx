@@ -10,6 +10,9 @@ export default function Home() {
       <p>
         <a href="/naiken">内見受付フォーム</a>
       </p>
+      <p>
+        <a href="/ca">CAフォーム</a>
+      </p>
     </div>
   );
 }

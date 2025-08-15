@@ -42,4 +42,4 @@ backend/credentials.json
 .firebase
 frontend/out
 
-firebase-debug.log*
+firebase-debug.log*backend/credentials.json
