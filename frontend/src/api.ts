@@ -1,4 +1,4 @@
-import type { PropertyData, KaitsukeFormData, NaikenFormData } from "@/types";
+import type { PropertyData, KaitsukeFormData, NaikenFormData, CAFormData } from "@/types";
 import type { SendApiResponse } from "@/types";
 
 /*
@@ -96,4 +96,38 @@ export class GasApiService {
     return await response.json();
   }
 
+  // CAフォーム送信
+  public async sendCAFormData(formData: CAFormData): Promise<SendApiResponse> {
+    try {
+      const payload = {
+        lastName: formData.lastName,
+        firstName: formData.firstName,
+        companyName: formData.companyName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        propertyNo: formData.property.no,
+        propertyAddress: formData.property.address,
+        propertyType: formData.property.type,
+        propertyPrice: formData.property.price,
+      };
+
+      const response = await fetch(`${this.baseUrl}/send_ca`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CAフォームデータの送信に失敗しました:', error);
+      return {
+        status: 'error',
+        message: 'CAフォームデータの送信に失敗しました'
+      };
+    }
+  }
 }

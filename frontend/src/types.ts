@@ -34,6 +34,16 @@ export interface NaikenFormData {
     imgFile?: File;
 }
 
+export interface CAFormData {
+    property: PropertyData;
+    lastName: string;
+    firstName: string;
+    companyName: string;
+    email: string;
+    phone: string;
+    address: string;
+}
+
 export interface SendApiResponse {
     status: string;
     message: string;
