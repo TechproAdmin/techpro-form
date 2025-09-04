@@ -6,9 +6,10 @@ interface KaitsukeConfirmModalProps {
   onClose: () => void;
   onConfirm: () => void;
   formData: KaitsukeFormData | null;
+  isSubmitting?: boolean;
 }
 
-export const KaitsukeConfirmModal = ({ isOpen, onClose, onConfirm, formData }: KaitsukeConfirmModalProps) => {
+export const KaitsukeConfirmModal = ({ isOpen, onClose, onConfirm, formData, isSubmitting }: KaitsukeConfirmModalProps) => {
   if (!isOpen || !formData) return null;
 
   return (
@@ -85,8 +86,9 @@ export const KaitsukeConfirmModal = ({ isOpen, onClose, onConfirm, formData }: K
           <button
             onClick={onConfirm}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            disabled={isSubmitting}
           >
-            申し込む
+            {isSubmitting ? "送信中..." : "申し込む"}
           </button>
         </div>
       </div>

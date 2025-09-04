@@ -16,6 +16,7 @@ export default function KaitsukeForm() {
   const [filteredProperties, setFilteredProperties] = useState<PropertyData[]>([]);  // 検索結果
   const [showKaitsukeConfirmModal, setShowKaitsukeConfirmModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<KaitsukeFormData | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -91,6 +92,7 @@ export default function KaitsukeForm() {
 
   const handleConfirm = async () => {
     if (formData) {
+      setIsSubmitting(true);
       try {
         const result = await GasApiService.getInstance().sendKaitsukeFormData(formData);
         console.log('API Response:', result);
@@ -109,6 +111,8 @@ export default function KaitsukeForm() {
       } catch (error) {
         console.error('送信エラー:', error);
         alert("送信に失敗しました。\nしばらく経ってから再度お試しください。\nこのメッセージが繰り返し出る場合は、お手数ですが弊社に直接お問い合わせください。\n\n" + error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -336,13 +340,14 @@ export default function KaitsukeForm() {
           </label>
         </div>
 
-        <button type="submit" id="submitBtn">申し込む</button>
+        <button type="submit" id="submitBtn" disabled={isSubmitting}>申し込む</button>
       </form>
       <KaitsukeConfirmModal
         isOpen={showKaitsukeConfirmModal}
         onClose={() => setShowKaitsukeConfirmModal(false)}
         onConfirm={handleConfirm}
         formData={formData}
+        isSubmitting={isSubmitting}
       />
       <KaitsukeCompleteModal
         isOpen={showCompleteModal}
