@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { PropertyData, NaikenFormData } from "@/types";
-import { GasApiService } from "@/api";
+import { GasApiService } from "../../api";
 import { NaikenConfirmModal } from "@/components/NaikenConfirmModal";
 import { NaikenCompleteModal } from "@/components/NaikenCompleteModal";
 import { formatNumberWithCommas } from "@/utils";
@@ -10,6 +10,7 @@ import { formatNumberWithCommas } from "@/utils";
 export default function NaikenForm() {
 
     const [propertyList, setPropertyList] = useState<PropertyData[]>([]);
+    const [naikenInfo, setNaikenInfo] = useState<string | null>(null);  // 選択された物件の内見可否
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredProperties, setFilteredProperties] = useState<PropertyData[]>([]);
     const [propertyInfo, setPropertyInfo] = useState<PropertyData | null>(null);
@@ -22,7 +23,7 @@ export default function NaikenForm() {
 
     useEffect(() => {
         const fetchProperties = async () => {
-            const properties = await GasApiService.getInstance().fetchPropertiesNaiken();
+            const properties = await GasApiService.getInstance().fetchProperties();
             setPropertyList(properties);
             setFilteredProperties(properties);
         };
@@ -36,6 +37,11 @@ export default function NaikenForm() {
         );
         setFilteredProperties(filtered);
     }, [searchQuery, propertyList]);
+
+    const handleSelectProperty = (property: PropertyData) => {
+        setPropertyInfo(property);
+        setNaikenInfo(property.naiken);
+    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -52,6 +58,7 @@ export default function NaikenForm() {
             time2: formData.get('time2')?.toString() ?? '',
             privacy: formData.get('privacy')?.toString() === 'on',
             property: propertyInfo!,
+            imgFile: formData.get('imgFile') as File | null,
         } as NaikenFormData;
 
         setFormData(data);
@@ -59,19 +66,10 @@ export default function NaikenForm() {
     };
 
     const handleConfirm = async () => {
-        if (formData) {
+        if (formData && formData.property) {
             setIsSubmitting(true);
             try {
-                const form = formRef.current;
-                if (!form) return;
-
-                const submitFormData = new FormData(form);
-                submitFormData.set('propertyNo', formData.property.no);
-                submitFormData.set('propertyAddress', formData.property.address);
-                submitFormData.set('propertyType', formData.property.type);
-                submitFormData.set('propertyPrice', formData.property.price.toString());
-
-                const result = await GasApiService.getInstance().sendNaikenFormData(submitFormData);
+                const result = await GasApiService.getInstance().sendNaikenFormData(formData);
                 console.log('API Response:', result);
                 if (result.status === "success") {
                     setShowNaikenConfirmModal(false);
@@ -102,6 +100,21 @@ export default function NaikenForm() {
             <form ref={formRef} onSubmit={handleSubmit}>
 
                 <div className="form-group">
+                    <label htmlFor="name">氏名<span className="required">*</span></label>
+                    <input type="text" id="name" name="name" required />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="phone">電話番号<span className="required">*</span></label>
+                    <input type="tel" id="phone" name="phone" required />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="email">メールアドレス<span className="required">*</span></label>
+                    <input type="email" id="email" name="email" required />
+                </div>
+
+                <div className="form-group">
                     <label htmlFor="propertySearch">内見希望物件名<span className="required">*</span></label>
                     <div className="relative">
                         <input
@@ -115,7 +128,7 @@ export default function NaikenForm() {
                         <select 
                         id="propertySelect" 
                         name="propertyNo"
-                        onChange={(e) => setPropertyInfo(propertyList.find(property => property.no === e.target.value) ?? null)}
+                        onChange={(e) => handleSelectProperty(propertyList.find(p => p.no === e.target.value)!)}
                         defaultValue=""
                         required
                         className="w-full border rounded mt-2 p-2"
@@ -123,11 +136,19 @@ export default function NaikenForm() {
                             <option value="" disabled>-- 物件を選択してください --</option>
                             {filteredProperties.map((property, index) => (
                                 <option key={`property-${index}-${property.no}`} value={property.no}>
-                                    {property.no} {property.address} ｜ {property.type} {property.price}
+                                    {property.no} {property.address} ｜ {property.type} {property.price}万円
                                 </option>
                             ))}
                         </select>
                     </div>
+                </div>
+
+                <div className="text-xl text-red-500 mb-4 font-bold">
+                    {naikenInfo && (
+                        naikenInfo.includes("NG") || naikenInfo.includes("不可")
+                            ? "※本物件は内見できません"
+                            : ""
+                    )}
                 </div>
 
                 <div className="form-group">
@@ -152,21 +173,6 @@ export default function NaikenForm() {
                         value={propertyInfo?.price ? formatNumberWithCommas(propertyInfo.price.toString()) : ''} 
                         readOnly 
                     />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="name">氏名<span className="required">*</span></label>
-                    <input type="text" id="name" name="name" required />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="phone">電話番号<span className="required">*</span></label>
-                    <input type="tel" id="phone" name="phone" required />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="email">メールアドレス<span className="required">*</span></label>
-                    <input type="email" id="email" name="email" required />
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4">
@@ -234,21 +240,22 @@ export default function NaikenForm() {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="imgFile">身分証 or 名刺を画像ファイルでアップロードしてください<span className="required">*</span></label>
+                    <label htmlFor="imgFile">身分証 or 名刺を画像ファイルまたはPDFでアップロードしてください<span className="required">*</span></label>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <input
                             type="file"
                             id="imgFile"
                             name="imgFile"
                             required
-                            style={{ display: 'none' }}
+                            accept="image/*,.pdf"
+                            style={{ opacity: 0, position: 'absolute', left: '-9999px' }}
                             onChange={(e) => {
                                 const file = e.target.files && e.target.files[0];
                                 setSelectedFileName(file ? file.name : '');
                             }}
                         />
                         <label htmlFor="imgFile" className="custom-file-upload" style={{ cursor: 'pointer', background: '#3182ce', color: '#fff', padding: '8px 16px', borderRadius: '4px', marginRight: '12px' }}>
-                            画像をアップロード
+                            ファイルをアップロード
                         </label>
                         <span>{selectedFileName || 'ファイルが選択されていません'}</span>
                     </div>
@@ -264,7 +271,13 @@ export default function NaikenForm() {
                     </label>
                 </div>
 
-                <button type="submit" id="submitBtn" disabled={isSubmitting}>申し込む</button>
+                <button 
+                    type="submit" 
+                    id="submitBtn" 
+                    disabled={isSubmitting || (naikenInfo ? (naikenInfo.includes("NG") || naikenInfo.includes("不可")) : false)}
+                >
+                    {naikenInfo && (naikenInfo.includes("NG") || naikenInfo.includes("不可")) ? "内見不可のため申し込めません" : "申し込む"}
+                </button>
                 
             </form>
             <NaikenConfirmModal

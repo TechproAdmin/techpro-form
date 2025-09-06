@@ -1,133 +1,158 @@
-import type { PropertyData, KaitsukeFormData, NaikenFormData, CAFormData } from "@/types";
-import type { SendApiResponse } from "@/types";
+/**
+ * GASで公開しているAPIを呼び出す
+ * 1. 在庫一覧表参照
+ * 2. 買付フォーム送信
+ * 3. 内見フォーム送信
+ * 4. CAフォーム送信
+ */
 
-/*
-在庫一覧取得のAPIはGASのエンドポイントで公開されている
-GASスクリプト: https://script.google.com/d/1YihVIQXIwReSW7pTKiGUP4yb-axHG8P-9mJ2ZxsAgzvUe2vnphHBRgm8/edit?usp=sharing
-*/
+import { 
+    PropertyData, 
+    SendApiResponse, 
+    KaitsukeFormData, 
+    NaikenFormData, 
+    CAFormData 
+} from "./types";
+
+
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwHBRUlauSxej0E5Xbg7oVRiZO3tLVYbTKdM1LIr2vITaPVTDQGq0E3K9UQ7txZUM6X/exec'
 
 export class GasApiService {
-  private static instance: GasApiService;
-  private baseUrl: string;
+    private static instance: GasApiService;
+    private baseUrl: string = GAS_API_URL;
 
-  private constructor() {
-    // this.baseUrl = 'http://localhost:8080';
-    this.baseUrl = 'https://techpro-form-api-236032490225.asia-northeast1.run.app';
-  }
+    private constructor() {
+    this.baseUrl = GAS_API_URL;
+    }
 
-  public static getInstance(): GasApiService {
+    public static getInstance(): GasApiService {
     if (!GasApiService.instance) {
-      GasApiService.instance = new GasApiService();
+        GasApiService.instance = new GasApiService();
     }
     return GasApiService.instance;
-  }
-
-  // 在庫参照
-  public async fetchProperties(): Promise<PropertyData[]> {
-    try {
-      const fetch_api_url = this.baseUrl + "/fetch";
-      const response = await fetch(fetch_api_url);
-      const data = await response.json();
-      // 空のnoを持つ物件をフィルタリング
-      return data.properties.filter((property: PropertyData) => property.no && property.no.trim() !== '');
-    } catch (error) {
-      console.error('物件データの取得に失敗しました:', error);
-      return [];
     }
-  }
 
-  // 在庫参照(内見可のみ)
-  public async fetchPropertiesNaiken(): Promise<PropertyData[]> {
-    const response = await fetch(`${this.baseUrl}/fetch_naiken`);
-    const data = await response.json();
-    return data.properties;
-  }
-
-  // 買付フォーム送信
-  public async sendKaitsukeFormData(data: KaitsukeFormData): Promise<SendApiResponse> {
-    try {
-      const payload = {
-          lastName: data.lastName,
-          firstName: data.firstName,
-          companyName: data.companyName,
-          email: data.email,
-          phone: data.phone,
-          address: data.address,
-          media: data.media,
-          agentName: data.agentName,
-          offerPrice: data.offerPrice,
-          deposit: data.deposit,
-          loan: data.loan,
-          conditions: data.conditions,
-          propertyNo: data.property.no,
-          propertyAddress: data.property.address,
-          propertyType: data.property.type,
-          propertyPrice: data.property.price,
-      }
-
-      const send_api_url = this.baseUrl + "/send_kaitsuke";
-
-      const response = await fetch(send_api_url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-      return result;
-
-    } catch (error) {
-      console.error('フォームデータの送信に失敗しました:', error);
-      return {
-        status: 'error',
-        message: 'フォームデータの送信に失敗しました'
-      };
+    // ファイルをBase64エンコードし、MIMEタイプも取得
+    private async fileToBase64(file: File): Promise<{base64: string, mimeType: string}> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result as string;
+                // data:image/jpeg;base64, の部分を除去してbase64部分のみを取得
+                const base64 = result.split(',')[1];
+                // MIMEタイプを取得
+                const mimeType = result.split(',')[0].split(':')[1].split(';')[0];
+                resolve({base64, mimeType});
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
     }
-  }
 
-  // 内見フォーム送信
-  public async sendNaikenFormData(formData: FormData): Promise<{ status: string; message?: string }> {
-    const response = await fetch(`${this.baseUrl}/send_naiken`, {
-      method: 'POST',
-      body: formData,
-    });
-    return await response.json();
-  }
-
-  // CAフォーム送信
-  public async sendCAFormData(formData: CAFormData): Promise<SendApiResponse> {
-    try {
-      const payload = {
-        lastName: formData.lastName,
-        firstName: formData.firstName,
-        companyName: formData.companyName,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        propertyNo: formData.property.no,
-        propertyAddress: formData.property.address,
-        propertyType: formData.property.type,
-        propertyPrice: formData.property.price,
-      };
-
-      const response = await fetch(`${this.baseUrl}/send_ca`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error('CAフォームデータの送信に失敗しました:', error);
-      return {
-        status: 'error',
-        message: 'CAフォームデータの送信に失敗しました'
-      };
+    // 在庫一覧取得
+    public async fetchProperties(): Promise<PropertyData[]> {
+        const response = await fetch(this.baseUrl, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "fetch"
+            })
+        });
+        const responseData = await response.json();
+        const properties: PropertyData[] = responseData.data.map((item: any) => ({
+            no: item['案件管理No'],
+            address: item['所在地'],
+            type: item['物件種別'],
+            price: item['売値'],
+            naiken: item['内見可否'],
+        })).filter((item: PropertyData) => item.no && item.no.trim() !== '' && item.no != '案件管理No');
+        return properties;
     }
-  }
+
+    // 買付フォーム送信
+    public async sendKaitsukeFormData(data: KaitsukeFormData): Promise<SendApiResponse> {
+        const response = await fetch(this.baseUrl, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "kaitsuke",
+                data: {
+                    "日時": new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
+                    "姓": data.lastName,
+                    "名": data.firstName,
+                    "法人名": data.companyName,
+                    "メールアドレス": data.email,
+                    "電話番号": data.phone,
+                    "住所": data.address,
+                    "媒体": data.media,
+                    "紹介業者名": data.agentName,
+                    "買付金額（万円）": data.offerPrice,
+                    "手付金（万円）": data.deposit,
+                    "購入方法": data.loan,
+                    "他条件": data.conditions,
+                    "物件番号": data.property.no,
+                    "物件住所": data.property.address,
+                    "物件種別": data.property.type,
+                    "販売金額": data.property.price
+                }
+            })
+        });
+        const responseData = await response.json();
+        return responseData;
+    }
+
+    // 内見フォーム送信
+    public async sendNaikenFormData(data: NaikenFormData): Promise<SendApiResponse> {
+        // 免許証or名刺のファイルをエンコード（画像またはPDF）
+        const fileData = await this.fileToBase64(data.imgFile || new File([], ""));
+        // console.log(fileData)
+        const response = await fetch(this.baseUrl, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "naiken",
+                data: {
+                    "日時": new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
+                    "氏名": data.name,
+                    "メールアドレス": data.email,
+                    "希望日①": data.date1,
+                    "希望時間帯①": data.time1,
+                    "希望日②": data.date2,
+                    "希望時間帯②": data.time2,
+                    "免許証or名刺": fileData.base64,
+                    "免許証or名刺ファイルタイプ": fileData.mimeType,
+                    "プライバシーポリシー": data.privacy,
+                    "物件番号": data.property.no,
+                    "物件住所": data.property.address,
+                    "物件種別": data.property.type,
+                    "販売金額": data.property.price,
+                    "内見可否": data.property.naiken
+                }
+            })
+        });
+        const responseData = await response.json();
+        return responseData;
+    }
+
+    // CAフォーム送信
+    public async sendCAFormData(data: CAFormData): Promise<SendApiResponse> {
+        const response = await fetch(this.baseUrl, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "ca",
+                data: {
+                    "日時": new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
+                    "姓": data.lastName,
+                    "名": data.firstName,
+                    "法人名": data.companyName,
+                    "メールアドレス": data.email,
+                    "電話番号": data.phone,
+                    "住所": data.address,
+                    "物件番号": data.property.no,
+                    "物件住所": data.property.address,
+                    "物件種別": data.property.type,
+                    "販売金額": data.property.price
+                }
+            })
+        });
+        const responseData = await response.json();
+        return responseData;
+    }
 }
