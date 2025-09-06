@@ -6,46 +6,44 @@
 
 ```
 .
-├── frontend/          # Next.jsフロントエンド
-│   ├── src/          # ソースコード
-│   ├── public/       # 静的ファイル
-│   └── ...
-└── backend/          # Express.jsバックエンド
-    ├── src/          # ソースコード
-    ├── deploy.sh     # デプロイスクリプト
-    └── ...
+└── frontend/          # Next.jsフロントエンド
+    ├── src/           # ソースコード
+    │   ├── app/       # Next.js App Router
+    │   ├── components/ # React コンポーネント
+    │   ├── api.ts     # Google Apps Script API連携
+    │   ├── types.ts   # TypeScript型定義
+    │   └── utils.ts   # ユーティリティ関数
+    ├── public/        # 静的ファイル
+    └── package.json   # 依存関係
 ```
 
 ## 機能
 
-- 在庫一覧の表示
-- 内見可物件の一覧表示
-- 内見申込フォーム
-- 買付申込フォーム
-- Google Spreadsheetとの連携
+- **物件検索・選択**: 案件管理番号や住所での物件検索
+- **買付申込フォーム** (`/kaitsuke`): 買付条件の入力と送信
+- **内見申込フォーム** (`/naiken`): 内見希望日の入力と免許証・名刺のアップロード
+- **CAフォーム** (`/ca`): CA（秘密保持契約）の申込
+- **秘密保持誓約ページ** (`/ca-articles`): 秘密保持契約の詳細条項
+- **Google Spreadsheet連携**: 物件データの取得とフォーム送信
 
 ## 技術スタック
 
 ### フロントエンド
-- Next.js
-- TypeScript
-- Tailwind CSS
-- Firebase Hosting
+- **Next.js 15.3.2** - React フレームワーク
+- **TypeScript 5** - 型安全性
+- **Tailwind CSS 4** - スタイリング
+- **Firebase Hosting** - デプロイ先
 
 ### バックエンド
-- Express.js
-- TypeScript
-- Google Sheets API
-- Google Cloud Run
+- **Google Apps Script (GAS)** - サーバーサイド処理
+- **Google Spreadsheet API** - データ管理
 
 ## セットアップ
 
 ### 前提条件
 - Node.js (v18以上)
-- Google Cloud SDK
-- Google Cloud プロジェクト
-- Google Spreadsheet APIの有効化
-- サービスアカウントの作成と認証情報の設定
+- Google Apps Script プロジェクト
+- Google Spreadsheet の設定
 
 ### フロントエンドのセットアップ
 
@@ -55,20 +53,11 @@ npm install
 npm run dev
 ```
 
-### バックエンドのセットアップ
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
 ### 環境変数の設定
 
-#### バックエンド
-- `FORM_SS_ID`: フォーム管理用スプレッドシートID
-- `ZAIKO_SS_ID`: 在庫管理用スプレッドシートID
-- `credentials.json`: Google Cloud認証情報
+#### Google Apps Script API URL
+- `GAS_API_URL`: Google Apps Script の Web App URL
+  - 現在の設定: `https://script.google.com/macros/s/AKfycbwHBRUlauSxej0E5Xbg7oVRiZO3tLVYbTKdM1LIr2vITaPVTDQGq0E3K9UQ7txZUM6X/exec`
 
 ## デプロイ
 
@@ -77,53 +66,64 @@ npm run dev
 ```bash
 cd frontend
 npm run build
+npm run export
 firebase deploy
 ```
 
-### バックエンド（Cloud Run）
+## API 仕様
 
-```bash
-cd backend
-./deploy.sh
-```
+### Google Apps Script エンドポイント
 
-## API エンドポイント
+#### 在庫一覧取得
+- **Action**: `fetch`
+- **Method**: `POST`
+- **Response**: 物件データの配列
 
-### 在庫一覧取得
-- `GET /fetch`
-  - 全在庫物件の一覧を取得
+#### 買付申込フォーム送信
+- **Action**: `kaitsuke`
+- **Method**: `POST`
+- **Data**: 買付申込情報
 
-### 内見可物件一覧取得
-- `GET /fetch_naiken`
-  - 内見可能な物件の一覧を取得
+#### 内見申込フォーム送信
+- **Action**: `naiken`
+- **Method**: `POST`
+- **Data**: 内見申込情報（画像ファイル含む）
 
-### 内見申込フォーム
-- `POST /send_naiken`
-  - 内見申込情報を送信
-
-### 買付申込フォーム
-- `POST /send_kaitsuke`
-  - 買付申込情報を送信
+#### CAフォーム送信
+- **Action**: `ca`
+- **Method**: `POST`
+- **Data**: CA申込情報
 
 ## 開発者向け情報
 
 ### ローカル開発
-1. バックエンドの起動
-   ```bash
-   cd backend
-   npm run dev
-   ```
 
-2. フロントエンドの起動
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+```bash
+cd frontend
+npm run dev
+```
 
 ### デバッグ
-- バックエンド: `http://localhost:8080`
 - フロントエンド: `http://localhost:3000`
 
-## ライセンス
+### プロジェクト構造
 
-このプロジェクトは社内利用専用です。
+```
+frontend/src/
+├── app/
+│   ├── page.tsx              # ホームページ
+│   ├── kaitsuke/page.tsx     # 買付申込フォーム
+│   ├── naiken/page.tsx       # 内見申込フォーム
+│   ├── ca/page.tsx           # CAフォーム
+│   └── ca-articles/page.tsx  # 秘密保持誓約
+├── components/
+│   ├── KaitsukeConfirmModal.tsx
+│   ├── KaitsukeCompleteModal.tsx
+│   ├── NaikenConfirmModal.tsx
+│   ├── NaikenCompleteModal.tsx
+│   ├── CAConfirmModal.tsx
+│   └── CACompleteModal.tsx
+├── api.ts                    # GAS API連携
+├── types.ts                  # TypeScript型定義
+└── utils.ts                  # ユーティリティ関数
+```

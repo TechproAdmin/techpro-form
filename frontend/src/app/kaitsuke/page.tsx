@@ -340,6 +340,16 @@ export default function KaitsukeForm() {
           </label>
         </div>
 
+        <div className="form-group flex mb-4">
+          <input type="checkbox" id="privacy" name="privacy" className="mr-2" required />
+          <label htmlFor="ca">
+              <a href="/ca-articles" target="_blank" rel="noopener noreferrer" className="text-blue-500 border-b border-blue-500">
+                  秘密保持誓約条項
+              </a>
+              に同意します<span className="required">*</span>
+          </label>
+        </div>
+
         <button type="submit" id="submitBtn" disabled={isSubmitting}>申し込む</button>
       </form>
       <KaitsukeConfirmModal

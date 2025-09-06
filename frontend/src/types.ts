@@ -3,6 +3,7 @@ export interface PropertyData {
     address: string;
     type: string;
     price: number;
+    naiken: string;
 }
 
 export interface KaitsukeFormData {
