@@ -85,7 +85,7 @@ export default function CAForm() {
 
             <h1>秘密保持誓約</h1>
             <p className="text-sm text-red-500 mb-4 font-bold text-l">
-                <a href="/ca-articles" className="text-blue-500 border-b border-blue-500">
+                <a href="/ca-articles" target="_blank" rel="noopener noreferrer" className="text-blue-500 border-b border-blue-500">
                     こちらのページ
                 </a>
                 をご確認いただき、秘密保持の誓約をお願いいたします。
