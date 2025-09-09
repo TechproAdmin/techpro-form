@@ -87,7 +87,7 @@ export class GasApiService {
                     "買付金額（万円）": data.offerPrice,
                     "手付金（万円）": data.deposit,
                     "購入方法": data.loan,
-                    "他条件": data.conditions,
+                    "他条件": data.conditions.join(', '),
                     "物件番号": data.property.no,
                     "物件住所": data.property.address,
                     "物件種別": data.property.type,
