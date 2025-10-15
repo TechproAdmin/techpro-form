@@ -23,7 +23,9 @@ export interface KaitsukeFormData {
 }
 
 export interface NaikenFormData {
-    name: string;
+    lastName: string;
+    firstName: string;
+    companyName: string;
     phone: string;
     email: string;
     date1: string;

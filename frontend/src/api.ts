@@ -110,7 +110,9 @@ export class GasApiService {
                 action: "naiken",
                 data: {
                     "日時": new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
-                    "氏名": data.name,
+                    "姓": data.lastName,
+                    "名": data.firstName,
+                    "法人名": data.companyName,
                     "メールアドレス": data.email,
                     "電話番号": data.phone,
                     "希望日①": data.date1,
