@@ -32,7 +32,7 @@ export const NaikenCompleteModal = ({ isOpen, onClose }: NaikenCompleteModalProp
             閉じる
           </button>
           <button
-            onClick={() => window.open("https://lin.ee/Y8UqyPI", "_blank")}
+            onClick={() => window.open("https://lin.ee/eSUpcG5", "_blank")}
             className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600"
           >
             LINE登録する

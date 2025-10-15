@@ -22,7 +22,9 @@ export const NaikenConfirmModal = ({ isOpen, onClose, onConfirm, formData, isSub
             <h3 className="font-bold">内見希望者情報</h3>
             <div className="grid grid-cols-2 gap-2">
               <div>氏名：</div>
-              <div>{formData.name}</div>
+              <div>{formData.lastName} {formData.firstName}</div>
+              <div>法人名：</div>
+              <div>{formData.companyName}</div>
               <div>電話番号：</div>
               <div>{formData.phone}</div>
               <div>メールアドレス：</div>

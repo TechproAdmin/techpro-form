@@ -49,7 +49,10 @@ export default function NaikenForm() {
         const formData = new FormData(form);
         
         const data = {
-            name: formData.get('name')?.toString() ?? '',
+            // name: formData.get('name')?.toString() ?? '',
+            lastName: formData.get('lastName')?.toString() ?? '',
+            firstName: formData.get('firstName')?.toString() ?? '',
+            companyName: formData.get('companyName')?.toString() ?? '',
             phone: formData.get('phone')?.toString() ?? '',
             email: formData.get('email')?.toString() ?? '',
             date1: formData.get('date1')?.toString() ?? '',
@@ -100,8 +103,19 @@ export default function NaikenForm() {
             <form ref={formRef} onSubmit={handleSubmit}>
 
                 <div className="form-group">
-                    <label htmlFor="name">氏名<span className="required">*</span></label>
-                    <input type="text" id="name" name="name" required />
+                    <label htmlFor="lastName">姓 <span className="required">*</span></label>
+                    <input type="text" id="lastName" name="lastName" required />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="firstName">名 <span className="required">*</span></label>
+                    <input type="text" id="firstName" name="firstName" required />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="companyName">法人名</label>
+                    <input type="text" id="companyName" name="companyName" />
+                    <div className="note">※法人名義で購入される場合はご入力ください</div>
                 </div>
 
                 <div className="form-group">
