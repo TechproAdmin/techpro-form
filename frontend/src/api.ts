@@ -112,6 +112,7 @@ export class GasApiService {
                     "日時": new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
                     "氏名": data.name,
                     "メールアドレス": data.email,
+                    "電話番号": data.phone,
                     "希望日①": data.date1,
                     "希望時間帯①": data.time1,
                     "希望日②": data.date2,
