@@ -59,8 +59,8 @@ export const KaitsukeConfirmModal = ({ isOpen, onClose, onConfirm, formData, isS
               <div>{formatNumberWithCommas(formData.offerPrice.toString())}万円</div>
               <div>手付金：</div>
               <div>{formatNumberWithCommas(formData.deposit.toString())}万円</div>
-              <div>融資特約：</div>
-              <div>{formData.loan ? "あり" : "なし"}</div>
+              <div>購入方法：</div>
+              <div>{formData.loan}</div>
             </div>
           </div>
 
