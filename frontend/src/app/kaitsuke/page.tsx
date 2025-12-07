@@ -17,22 +17,30 @@ export default function KaitsukeForm() {
   const [showKaitsukeConfirmModal, setShowKaitsukeConfirmModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);  // 物件データ取得中フラグ
   const [formData, setFormData] = useState<KaitsukeFormData | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     const fetchProperties = async () => {
-      const properties = await GasApiService.getInstance().fetchProperties();
-      setPropertyList(properties);
-      setFilteredProperties(properties);
+      try {
+        setIsLoadingProperties(true);
+        const properties = await GasApiService.getInstance().fetchProperties();
+        setPropertyList(properties);
+        setFilteredProperties(properties);
+      } catch (error) {
+        console.error('物件データの取得に失敗しました:', error);
+      } finally {
+        setIsLoadingProperties(false);
+      }
     };
 
     fetchProperties();
   }, []);
 
   useEffect(() => {
-    const filtered = propertyList.filter(property => 
-      property.no.includes(searchQuery) || 
+    const filtered = propertyList.filter(property =>
+      property.no.includes(searchQuery) ||
       property.address.includes(searchQuery)
     );
     setFilteredProperties(filtered);
@@ -63,7 +71,7 @@ export default function KaitsukeForm() {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
-    
+
     const data = {
       lastName: formData.get('lastName')?.toString() ?? '',
       firstName: formData.get('firstName')?.toString() ?? '',
@@ -119,251 +127,258 @@ export default function KaitsukeForm() {
 
   return (
     <div className="kaitsuke-page">
-    <div className="form-container">
-      <h1>買付申込フォーム</h1>
-      <p className="text-sm text-red-500">
-        物件購入ご希望の場合、フォームに沿ってお申し込みください。<br />
-        申込後、担当より申込内容を反映した買付証明書を送付いたします。
-      </p>
-      <form ref={formRef} onSubmit={handleSubmit}>
+      <div className="form-container">
+        <h1>買付申込フォーム</h1>
+        <p className="text-sm text-red-500">
+          物件購入ご希望の場合、フォームに沿ってお申し込みください。<br />
+          申込後、担当より申込内容を反映した買付証明書を送付いたします。
+        </p>
+        <form ref={formRef} onSubmit={handleSubmit}>
 
-        <h2>購入者情報</h2>
+          <h2>購入者情報</h2>
 
-        <div className="form-group">
-          <label htmlFor="lastName">姓 <span className="required">*</span></label>
-          <input type="text" id="lastName" name="lastName" required />
-        </div>
+          <div className="form-group">
+            <label htmlFor="lastName">姓 <span className="required">*</span></label>
+            <input type="text" id="lastName" name="lastName" required />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="firstName">名 <span className="required">*</span></label>
-          <input type="text" id="firstName" name="firstName" required />
-        </div>
+          <div className="form-group">
+            <label htmlFor="firstName">名 <span className="required">*</span></label>
+            <input type="text" id="firstName" name="firstName" required />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="companyName">法人名</label>
-          <input type="text" id="companyName" name="companyName" />
-          <div className="note">※法人名義で購入される場合はご入力ください</div>
-        </div>
+          <div className="form-group">
+            <label htmlFor="companyName">法人名</label>
+            <input type="text" id="companyName" name="companyName" />
+            <div className="note">※法人名義で購入される場合はご入力ください</div>
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="email">メールアドレス <span className="required">*</span></label>
-          <input type="email" id="email" name="email" required />
-        </div>
+          <div className="form-group">
+            <label htmlFor="email">メールアドレス <span className="required">*</span></label>
+            <input type="email" id="email" name="email" required />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="phone">電話番号 <span className="required">*</span></label>
-          <input type="tel" id="phone" name="phone" pattern="[\d\-]+" required />
-        </div>
+          <div className="form-group">
+            <label htmlFor="phone">電話番号 <span className="required">*</span></label>
+            <input type="tel" id="phone" name="phone" pattern="[\d\-]+" required />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="address">住所 <span className="required">*</span></label>
-          <input type="text" id="address" name="address" required />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="media">媒体 <span className="required">*</span></label>
-          <select 
-            id="media" 
-            name="media" 
-            onChange={handleMediaChange}
-            defaultValue=""
-            required
-          >
-            <option value="" disabled>-- この物件を知った媒体をご教示ください --</option>
-            <option value="LINE公式アカウント「利回り20%倶楽部」">LINE公式アカウント「利回り20%倶楽部」</option>
-            <option value="弊社のメルマガ">弊社のメルマガ</option>
-            <option value="健美家">健美家</option>
-            <option value="LIFULL HOME'S">LIFULL HOME'S</option>
-            <option value="at home">at home</option>
-            <option value="不動産投資連合隊">不動産投資連合隊</option>
-            <option value="リガイド">リガイド</option>
-            <option value="SUUMO">SUUMO</option>
-            <option value="Yahoo!不動産">Yahoo!不動産</option>
-            <option value="REINS">REINS</option>
-            <option value="業者様からの紹介">業者様からの紹介</option>
-            <option value="その他">その他</option>
+          <div className="form-group">
+            <label htmlFor="address">住所 <span className="required">*</span></label>
+            <input type="text" id="address" name="address" required />
+          </div>
 
-          </select>
-        </div>
-        
-        <div className="form-group" style={{ display: showAgentField ? 'block' : 'none' }}>
-          <label htmlFor="agentName">紹介いただいた業者様名 <span className="required">*</span></label>
-          <input 
-            type="text" 
-            id="agentName" 
-            name="agentName" 
-            placeholder="ご紹介いただいた業者様の名前や媒体名をご入力ください" 
-            required={showAgentField}
-          />
-        </div>
-        
-        <h2>購入希望条件</h2>
-        
-        <div className="form-group">
-          <label htmlFor="propertySearch">購入希望物件 <span className="required">*</span></label>
-          <div className="relative">
-            <input
-              type="text"
-              id="propertySearch"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="物件番号または住所で検索（部分一致可）"
-              className="w-full border rounded p-2"
-            />
-            <select 
-              id="propertySelect" 
-              name="propertyName" 
-              onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address + " ｜ " + property.type + " " + property.price + "万円" === e.target.value) ?? null)}
+          <div className="form-group">
+            <label htmlFor="media">媒体 <span className="required">*</span></label>
+            <select
+              id="media"
+              name="media"
+              onChange={handleMediaChange}
               defaultValue=""
               required
-              className="w-full border rounded mt-2 p-2"
             >
-              <option value="" disabled>-- 物件を選択してください --</option>
-              {filteredProperties.map((property, index) => {
-                const optionValue = `${property.no} ${property.address} ｜ ${property.type} ${property.price}万円`;
-                return <option key={`property-${index}-${property.no}`} value={optionValue}>
-                  {property.no} {property.address} ｜ {property.type} {property.price}万円
-                </option>
-              })}
+              <option value="" disabled>-- この物件を知った媒体をご教示ください --</option>
+              <option value="LINE公式アカウント「利回り20%倶楽部」">LINE公式アカウント「利回り20%倶楽部」</option>
+              <option value="弊社のメルマガ">弊社のメルマガ</option>
+              <option value="健美家">健美家</option>
+              <option value="LIFULL HOME'S">LIFULL HOME'S</option>
+              <option value="at home">at home</option>
+              <option value="不動産投資連合隊">不動産投資連合隊</option>
+              <option value="リガイド">リガイド</option>
+              <option value="SUUMO">SUUMO</option>
+              <option value="Yahoo!不動産">Yahoo!不動産</option>
+              <option value="REINS">REINS</option>
+              <option value="業者様からの紹介">業者様からの紹介</option>
+              <option value="その他">その他</option>
+
             </select>
           </div>
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="propertyType">物件種別</label>
-          <input 
-            type="text" 
-            id="propertyType" 
-            name="propertyType" 
-            className="no-focus" 
-            value={propertyInfo?.type ?? ''} 
-            readOnly 
-          />
-        </div>
+          <div className="form-group" style={{ display: showAgentField ? 'block' : 'none' }}>
+            <label htmlFor="agentName">紹介いただいた業者様名 <span className="required">*</span></label>
+            <input
+              type="text"
+              id="agentName"
+              name="agentName"
+              placeholder="ご紹介いただいた業者様の名前や媒体名をご入力ください"
+              required={showAgentField}
+            />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="propertyPrice">販売価格 (万円)</label>
-          <input 
-            type="text" 
-            id="propertyPrice" 
-            name="propertyPrice" 
-            className="no-focus" 
-            value={propertyInfo?.price ? formatNumberWithCommas(propertyInfo.price.toString()) : ''} 
-            readOnly 
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="offerPrice">買付金額 (万円) <span className="required">*</span></label>
-          <input 
-            type="text" 
-            id="offerPrice" 
-            name="offerPrice" 
-            inputMode="numeric"
-            onChange={handleNumberInput}
-            pattern="^\d+(?:,\d{3})*$" 
-            placeholder="万円単位で半角数字のみでご入力ください"
-            required 
-          />
-        </div>
+          <h2>購入希望条件</h2>
 
-        <div className="form-group">
-          <label htmlFor="deposit">手付金 (万円) <span className="required">*</span></label>
-          <input 
-            type="text" 
-            id="deposit" 
-            name="deposit" 
-            inputMode="numeric"
-            onChange={handleNumberInput}
-            pattern="^\d+(?:,\d{3})*$" 
-            placeholder="万円単位で半角数字のみでご入力ください"
-            required 
-          />
-          <div className="note">※購入金額の10%を目安にお願いいたします</div>
-        </div>
+          <div className="form-group">
+            <label htmlFor="propertySearch">購入希望物件 <span className="required">*</span></label>
+            <div className="relative">
+              <input
+                type="text"
+                id="propertySearch"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="物件番号または住所で検索（部分一致可）"
+                className="w-full border rounded p-2"
+              />
+              <select
+                id="propertySelect"
+                name="propertyName"
+                onChange={(e) => setPropertyInfo(propertyList.find(property => property.no + " " + property.address + " ｜ " + property.type + " " + property.price + "万円" === e.target.value) ?? null)}
+                defaultValue=""
+                required
+                disabled={isLoadingProperties}
+                className="w-full border rounded mt-2 p-2"
+              >
+                {isLoadingProperties ? (
+                  <option value="" disabled>データを読み込み中...</option>
+                ) : (
+                  <>
+                    <option value="" disabled>-- 物件を選択してください --</option>
+                    {filteredProperties.map((property, index) => {
+                      const optionValue = `${property.no} ${property.address} ｜ ${property.type} ${property.price}万円`;
+                      return <option key={`property-${index}-${property.no}`} value={optionValue}>
+                        {property.no} {property.address} ｜ {property.type} {property.price}万円
+                      </option>
+                    })}
+                  </>
+                )}
+              </select>
+            </div>
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="loanContingency">購入方法 <span className="required">*</span></label>
-          <select 
-            id="loanContingency" 
-            name="loanContingency" 
-            onChange={handleLoanChange}
-            defaultValue=""
-            required
-          >
-            <option value="" disabled>-- 選択してください --</option>
-            <option value="現金購入">現金購入</option>
-            <option value="融資利用(融資特約なし)">融資利用(融資特約なし)</option>
-            <option value="融資利用(融資特約あり)">融資利用(融資特約あり)</option>
-          </select>
-          <div id="loanNote" className="note" style={{display: loanNote ? "block" : "none"}}>{loanNote}</div>
-        </div>
+          <div className="form-group">
+            <label htmlFor="propertyType">物件種別</label>
+            <input
+              type="text"
+              id="propertyType"
+              name="propertyType"
+              className="no-focus"
+              value={propertyInfo?.type ?? ''}
+              readOnly
+            />
+          </div>
 
-        <h2>購入の条件 (任意)</h2>
-        <div className="note mb-4">
-          <p>ご購入に際し、条件がある場合はご入力ください（最大5つまで）</p>
-          <p>※公簿売買・現況有姿・境界非明示でのお引き渡しは基本条件となります（一部物件を除く）</p>
-        </div>
+          <div className="form-group">
+            <label htmlFor="propertyPrice">販売価格 (万円)</label>
+            <input
+              type="text"
+              id="propertyPrice"
+              name="propertyPrice"
+              className="no-focus"
+              value={propertyInfo?.price ? formatNumberWithCommas(propertyInfo.price.toString()) : ''}
+              readOnly
+            />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="condition1">条件1</label>
-          <input type="text" id="condition1" name="condition1" />
-        </div>
+          <div className="form-group">
+            <label htmlFor="offerPrice">買付金額 (万円) <span className="required">*</span></label>
+            <input
+              type="text"
+              id="offerPrice"
+              name="offerPrice"
+              inputMode="numeric"
+              onChange={handleNumberInput}
+              pattern="^\d+(?:,\d{3})*$"
+              placeholder="万円単位で半角数字のみでご入力ください"
+              required
+            />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="condition2">条件2</label>
-          <input type="text" id="condition2" name="condition2" />
-        </div>
+          <div className="form-group">
+            <label htmlFor="deposit">手付金 (万円) <span className="required">*</span></label>
+            <input
+              type="text"
+              id="deposit"
+              name="deposit"
+              inputMode="numeric"
+              onChange={handleNumberInput}
+              pattern="^\d+(?:,\d{3})*$"
+              placeholder="万円単位で半角数字のみでご入力ください"
+              required
+            />
+            <div className="note">※購入金額の10%を目安にお願いいたします</div>
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="condition3">条件3</label>
-          <input type="text" id="condition3" name="condition3" />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="condition4">条件4</label>
-          <input type="text" id="condition4" name="condition4" />
-        </div>
+          <div className="form-group">
+            <label htmlFor="loanContingency">購入方法 <span className="required">*</span></label>
+            <select
+              id="loanContingency"
+              name="loanContingency"
+              onChange={handleLoanChange}
+              defaultValue=""
+              required
+            >
+              <option value="" disabled>-- 選択してください --</option>
+              <option value="現金購入">現金購入</option>
+              <option value="融資利用(融資特約なし)">融資利用(融資特約なし)</option>
+              <option value="融資利用(融資特約あり)">融資利用(融資特約あり)</option>
+            </select>
+            <div id="loanNote" className="note" style={{ display: loanNote ? "block" : "none" }}>{loanNote}</div>
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="condition5">条件5</label>
-          <input type="text" id="condition5" name="condition5" />
-        </div>
+          <h2>購入の条件 (任意)</h2>
+          <div className="note mb-4">
+            <p>ご購入に際し、条件がある場合はご入力ください（最大5つまで）</p>
+            <p>※公簿売買・現況有姿・境界非明示でのお引き渡しは基本条件となります（一部物件を除く）</p>
+          </div>
 
-        <div className="form-group flex mb-4">
-          <input type="checkbox" id="privacy" name="privacy" className="mr-2" required />
-          <label htmlFor="privacy">
+          <div className="form-group">
+            <label htmlFor="condition1">条件1</label>
+            <input type="text" id="condition1" name="condition1" />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="condition2">条件2</label>
+            <input type="text" id="condition2" name="condition2" />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="condition3">条件3</label>
+            <input type="text" id="condition3" name="condition3" />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="condition4">条件4</label>
+            <input type="text" id="condition4" name="condition4" />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="condition5">条件5</label>
+            <input type="text" id="condition5" name="condition5" />
+          </div>
+
+          <div className="form-group flex mb-4">
+            <input type="checkbox" id="privacy" name="privacy" className="mr-2" required />
+            <label htmlFor="privacy">
               <a href="https://www.techpro-j.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-blue-500 border-b border-blue-500">
-                  プライバシーポリシー
+                プライバシーポリシー
               </a>
               に同意します<span className="required">*</span>
-          </label>
-        </div>
+            </label>
+          </div>
 
-        <div className="form-group flex mb-4">
-          <input type="checkbox" id="privacy" name="privacy" className="mr-2" required />
-          <label htmlFor="ca">
+          <div className="form-group flex mb-4">
+            <input type="checkbox" id="privacy" name="privacy" className="mr-2" required />
+            <label htmlFor="ca">
               <a href="/ca-articles" target="_blank" rel="noopener noreferrer" className="text-blue-500 border-b border-blue-500">
-                  秘密保持誓約条項
+                秘密保持誓約条項
               </a>
               に同意します<span className="required">*</span>
-          </label>
-        </div>
+            </label>
+          </div>
 
-        <button type="submit" id="submitBtn" disabled={isSubmitting}>申し込む</button>
-      </form>
-      <KaitsukeConfirmModal
-        isOpen={showKaitsukeConfirmModal}
-        onClose={() => setShowKaitsukeConfirmModal(false)}
-        onConfirm={handleConfirm}
-        formData={formData}
-        isSubmitting={isSubmitting}
-      />
-      <KaitsukeCompleteModal
-        isOpen={showCompleteModal}
-        onClose={() => setShowCompleteModal(false)}
-      />
-    </div>
+          <button type="submit" id="submitBtn" disabled={isSubmitting}>申し込む</button>
+        </form>
+        <KaitsukeConfirmModal
+          isOpen={showKaitsukeConfirmModal}
+          onClose={() => setShowKaitsukeConfirmModal(false)}
+          onConfirm={handleConfirm}
+          formData={formData}
+          isSubmitting={isSubmitting}
+        />
+        <KaitsukeCompleteModal
+          isOpen={showCompleteModal}
+          onClose={() => setShowCompleteModal(false)}
+        />
+      </div>
     </div>
   );
 }

@@ -19,13 +19,21 @@ export default function NaikenForm() {
     const formRef = useRef<HTMLFormElement>(null);
     const [selectedFileName, setSelectedFileName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoadingProperties, setIsLoadingProperties] = useState(true);  // 物件データ取得中フラグ
     const [showCompleteModal, setShowCompleteModal] = useState(false);
 
     useEffect(() => {
         const fetchProperties = async () => {
-            const properties = await GasApiService.getInstance().fetchProperties();
-            setPropertyList(properties);
-            setFilteredProperties(properties);
+            try {
+                setIsLoadingProperties(true);
+                const properties = await GasApiService.getInstance().fetchProperties();
+                setPropertyList(properties);
+                setFilteredProperties(properties);
+            } catch (error) {
+                console.error('物件データの取得に失敗しました:', error);
+            } finally {
+                setIsLoadingProperties(false);
+            }
         };
         fetchProperties();
     }, []);
@@ -145,14 +153,21 @@ export default function NaikenForm() {
                                 onChange={(e) => handleSelectProperty(propertyList.find(p => p.no === e.target.value)!)}
                                 defaultValue=""
                                 required
+                                disabled={isLoadingProperties}
                                 className="w-full border rounded mt-2 p-2"
                             >
-                                <option value="" disabled>-- 物件を選択してください --</option>
-                                {filteredProperties.map((property, index) => (
-                                    <option key={`property-${index}-${property.no}`} value={property.no}>
-                                        {property.no} {property.address} ｜ {property.type} {property.price}万円
-                                    </option>
-                                ))}
+                                {isLoadingProperties ? (
+                                    <option value="" disabled>データを読み込み中...</option>
+                                ) : (
+                                    <>
+                                        <option value="" disabled>-- 物件を選択してください --</option>
+                                        {filteredProperties.map((property, index) => (
+                                            <option key={`property-${index}-${property.no}`} value={property.no}>
+                                                {property.no} {property.address} ｜ {property.type} {property.price}万円
+                                            </option>
+                                        ))}
+                                    </>
+                                )}
                             </select>
                         </div>
                     </div>
