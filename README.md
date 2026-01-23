@@ -1,9 +1,102 @@
-# TechPro Form
+# Techpro Form
+顧客からの内見申込、買付、CA提出を受け付けるフォーム用Webアプリケーション。
+提出された情報のDB登録やメール・LINE通知などを行います。
 
-不動産投資案件の内見申込・買付申込フォームを管理するWebアプリケーション
+## 目次
+[機能](#機能)
+[技術スタック](#技術スタック)
+[開発・管理用リンク](#開発・管理用リンク)
+[前提条件](#前提条件)
+[クイックスタート](#クイックスタート)
+[主要機能詳細](#主要機能詳細)
+[プロジェクト構造](#プロジェクト構造)
+[トラブルシューティング](#トラブルシューティング)
 
-## プロジェクト構成
+## 機能
+- **買付フォーム**: 在庫物件に対する買付提出
+- **内見フォーム**: 在庫物件に対する内見申込の提出
+- **CAフォーム**: 対象物件を選択してCAへの同意提出
+※詳細は[主要機能詳細](#主要機能詳細)を参照
 
+## 技術スタック
+- **フロントエンド**: Next.js
+    - **言語**: TypeScript
+    - **UIフレームワーク**: Tailwind CSS
+- **バックエンド**: Google Apps Script
+- **データベース**: Google Cloud SQL (PostgreSQL)
+- **インフラ/ホスティング**: Firebase Hosting
+
+## 開発・管理用リンク
+- **デプロイ済みURL**: https://techpro-form.web.app/
+- **バックエンド (GAS)**: [テクプロフォームバックエンドAPI](https://script.google.com/...)
+- **DB管理コンソール**: [Cloud SQL インスタンス](https://console.cloud.google.com/...)
+- **ホスティング管理**: [Firebase Console](https://console.firebase.google.com/...)
+
+## 前提条件
+- Node.js
+- Firebase SDK
+
+## クイックスタート
+### セットアップ
+```bash
+# リポジトリをクローン
+git clone <リポジトリURL>
+cd techpro-form/frontend/
+
+# パッケージをインストール
+npm install
+```
+
+### 開発サーバー起動
+```bash
+npm run dev
+```
+
+### デプロイ
+```bash
+# ビルドを実行
+npm run build
+
+# Firebaseにログイン
+firebase login --reauth
+
+# Firebaseにデプロイ
+firebase deploy
+```
+
+## 主要機能詳細
+### 買付フォーム
+`/kaitsuke`
+- バックエンドのGAS APIを呼び出して、在庫物件のリストを取得する
+- ユーザーは必要項目を入力、対象物件を上記で取得したリスト内から選択する
+- 送信ボタンを押すと確認モーダルが出現する
+- 確認モーダルで送信ボタンを押すと、バックエンドのGAS APIを呼び出す
+- GAS APIは、CloudSQLへの登録・顧客へのお礼メール配信・LINE WORKS通知を行う
+
+### 内見フォーム
+`/naiken`
+- バックエンドのGAS APIを呼び出して、在庫物件のリストを取得する
+- ユーザーは必要項目を入力、対象物件を上記で取得したリスト内から選択する
+    - 選択した物件が「内見NG」「内見不可」の場合、申込不可となる
+    - 選択した物件が「内見準備中」の場合、申込は可能だが日時の選択が不可となる
+- 送信ボタンを押すと確認モーダルが出現する
+- 確認モーダルで送信ボタンを押すと、バックエンドのGAS APIを呼び出す
+- GAS APIは、CloudSQLへの登録・顧客への受付完了メール配信を行う
+
+### CAフォーム
+`/ca`
+- バックエンドのGAS APIを呼び出して、在庫物件のリストを取得する
+- ユーザーは必要項目を入力、対象物件を上記で取得したリスト内から選択する
+- 送信ボタンを押すと確認モーダルが出現する
+- 確認モーダルで送信ボタンを押すと、バックエンドのGAS APIを呼び出す
+- GAS APIは、CloudSQLへの登録・顧客への受付完了メール配信を行う
+
+### CA条項ページ
+`/ca-articles`
+- CA条項を表示する
+- CAフォームにはこのページのリンクが付いている
+
+## プロジェクト構造
 ```
 .
 └── frontend/          # Next.jsフロントエンド
@@ -17,113 +110,7 @@
     └── package.json   # 依存関係
 ```
 
-## 機能
-
-- **物件検索・選択**: 案件管理番号や住所での物件検索
-- **買付申込フォーム** (`/kaitsuke`): 買付条件の入力と送信
-- **内見申込フォーム** (`/naiken`): 内見希望日の入力と免許証・名刺のアップロード
-- **CAフォーム** (`/ca`): CA（秘密保持契約）の申込
-- **秘密保持誓約ページ** (`/ca-articles`): 秘密保持契約の詳細条項
-- **Google Spreadsheet連携**: 物件データの取得とフォーム送信
-
-## 技術スタック
-
-### フロントエンド
-- **Next.js 15.3.2** - React フレームワーク
-- **TypeScript 5** - 型安全性
-- **Tailwind CSS 4** - スタイリング
-- **Firebase Hosting** - デプロイ先
-
-### バックエンド
-- **Google Apps Script (GAS)** - サーバーサイド処理
-- **Google Spreadsheet API** - データ管理
-
-## セットアップ
-
-### 前提条件
-- Node.js (v18以上)
-- Google Apps Script プロジェクト
-- Google Spreadsheet の設定
-
-### フロントエンドのセットアップ
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### 環境変数の設定
-
-#### Google Apps Script API URL
-- `GAS_API_URL`: Google Apps Script の Web App URL
-  - 現在の設定: `https://script.google.com/macros/s/AKfycbwHBRUlauSxej0E5Xbg7oVRiZO3tLVYbTKdM1LIr2vITaPVTDQGq0E3K9UQ7txZUM6X/exec`
-
-## デプロイ
-
-### フロントエンド（Firebase Hosting）
-
-```bash
-cd frontend
-npm run build
-npm run export
-firebase deploy
-```
-
-## API 仕様
-
-### Google Apps Script エンドポイント
-
-#### 在庫一覧取得
-- **Action**: `fetch`
-- **Method**: `POST`
-- **Response**: 物件データの配列
-
-#### 買付申込フォーム送信
-- **Action**: `kaitsuke`
-- **Method**: `POST`
-- **Data**: 買付申込情報
-
-#### 内見申込フォーム送信
-- **Action**: `naiken`
-- **Method**: `POST`
-- **Data**: 内見申込情報（画像ファイル含む）
-
-#### CAフォーム送信
-- **Action**: `ca`
-- **Method**: `POST`
-- **Data**: CA申込情報
-
-## 開発者向け情報
-
-### ローカル開発
-
-```bash
-cd frontend
-npm run dev
-```
-
-### デバッグ
-- フロントエンド: `http://localhost:3000`
-
-### プロジェクト構造
-
-```
-frontend/src/
-├── app/
-│   ├── page.tsx              # ホームページ
-│   ├── kaitsuke/page.tsx     # 買付申込フォーム
-│   ├── naiken/page.tsx       # 内見申込フォーム
-│   ├── ca/page.tsx           # CAフォーム
-│   └── ca-articles/page.tsx  # 秘密保持誓約
-├── components/
-│   ├── KaitsukeConfirmModal.tsx
-│   ├── KaitsukeCompleteModal.tsx
-│   ├── NaikenConfirmModal.tsx
-│   ├── NaikenCompleteModal.tsx
-│   ├── CAConfirmModal.tsx
-│   └── CACompleteModal.tsx
-├── api.ts                    # GAS API連携
-├── types.ts                  # TypeScript型定義
-└── utils.ts                  # ユーティリティ関数
-```
+## トラブルシューティング
+| 問題 | 解決方法 |
+| --- | --- |
+| 在庫物件が表示されない | コンソールログを確認する。GAS APIエラーの可能性が高い。 |
