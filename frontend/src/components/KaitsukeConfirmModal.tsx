@@ -76,6 +76,12 @@ export const KaitsukeConfirmModal = ({ isOpen, onClose, onConfirm, formData, isS
           )}
         </div>
 
+        {isSubmitting && (
+          <div className="mt-6 flex items-center justify-center bg-blue-200 border-2 border-blue-400 p-2 rounded-md">
+            <p className="text-sm">送信処理中です...この処理には30秒程度かかる場合がございます。<br />恐れ入りますが、完了するまでこのままお待ちください。</p>
+          </div>
+        )}
+
         <div className="mt-6 flex justify-end space-x-4">
           <button
             onClick={onClose}
@@ -91,12 +97,6 @@ export const KaitsukeConfirmModal = ({ isOpen, onClose, onConfirm, formData, isS
             {isSubmitting ? "送信中..." : "申し込む"}
           </button>
         </div>
-
-        {isSubmitting && (
-          <div className="mt-6 flex items-center justify-center bg-blue-200 border-2 border-blue-400 p-2 rounded-md">
-            <p className="text-sm">送信処理中です...この処理には30秒程度かかる場合がございます。<br />恐れ入りますが、完了するまでこのままお待ちください。</p>
-          </div>
-        )}
       </div>
     </div>
   );
